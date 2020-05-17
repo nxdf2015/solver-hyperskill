@@ -62,8 +62,7 @@ public class LinearSystems {
         try(PrintWriter writer  = new PrintWriter(f)){
             System.out.println("save result");
             for(int i=0;i < numberEquation;i++){
-
-                 writer.println(decimal.format(result[i]));
+                writer.println(decimal.format(result[i]));
             }
         }
         catch ( IOException e){
