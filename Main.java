@@ -9,7 +9,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class Main {
-    static String path ="";//""C:\\Users\\nique\\IdeaProjects\\Linear Equations Solver\\Linear Equations Solver\\task\\src\\solver";
+    static String path ="";
     static Scanner scanner = new Scanner(System.in);
     public static  Supplier<List<Double>> getValues = () ->  Arrays.stream(scanner.nextLine().split(" "))
                            .map(Double::parseDouble)
