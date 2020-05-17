@@ -1,13 +1,28 @@
 package solver;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 public class Main {
+    static String path ="";//""C:\\Users\\nique\\IdeaProjects\\Linear Equations Solver\\Linear Equations Solver\\task\\src\\solver";
+    static Scanner scanner = new Scanner(System.in);
+    public static  Supplier<List<Double>> getValues = () ->  Arrays.stream(scanner.nextLine().split(" "))
+                           .map(Double::parseDouble)
+                           .collect(Collectors.toList());
+
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        String[] n = scanner.nextLine().split(" ");
-        double x = Double.parseDouble(n[0]);
-        double  y = Double.parseDouble(n[1]);
-        System.out.println(y/x);
+             Parser parser = new Parser(args);
+             String in = parser.get("in");
+             String out = parser.get("out");
+             LinearSystems linearSystems = new LinearSystems(new File(  in));
+            linearSystems.solve();
+            linearSystems.getResult();
+            linearSystems.saveResult(new File(  out));
+
     }
 }
