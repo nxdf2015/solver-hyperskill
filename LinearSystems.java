@@ -15,6 +15,8 @@ public class LinearSystems {
     private   File file;
     private double[][] equations;
     private int numberEquation;
+    private int numberCol;
+    private int[] cols;
 
     public LinearSystems(File file) {
         this.file=file;
@@ -36,12 +38,21 @@ public class LinearSystems {
 
     private void readFile(){
         try(BufferedReader reader = new BufferedReader(new FileReader(file))){
-             numberEquation= Integer.parseInt(reader.readLine());
-            equations = new double[numberEquation][];
+
 
              String line;
              int i = 0;
-             while((line = reader.readLine()) != null){
+             String[] sizes = reader.readLine().split(" ");
+            numberEquation= Integer.parseInt(sizes[1]);
+            numberCol= Integer.parseInt(sizes[0]);
+            cols=new int[numberCol];
+
+            for(int j = 0;j <cols.length;j++){
+                cols[j]=j;
+            }
+            equations = new double[numberEquation][];
+
+            while((line = reader.readLine()) != null){
                  equations[i++]=lineToEquation(line);
              }
         }
@@ -51,8 +62,10 @@ public class LinearSystems {
     }
 
 
-    public void saveResult(File f){
-        double[] result = getResult();
+    private void saveResult(File f,int lastRow){
+        double[] result = getResult(lastRow);
+
+        result = reorder(result);
 
         //format number
         DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.getDefault());
@@ -61,13 +74,22 @@ public class LinearSystems {
 
         try(PrintWriter writer  = new PrintWriter(f)){
             System.out.println("save result");
-            for(int i=0;i < numberEquation;i++){
+            for(int i=0;i < numberCol;i++){
                 writer.println(decimal.format(result[i]));
             }
         }
         catch ( IOException e){
             System.out.println(e);
         }
+    }
+
+    private double[] reorder(double[] result) {
+        double[] temp = new double[result.length];
+        for(int i = 0;i <cols.length;i++){
+            temp[cols[i]]=result[i];
+        }
+        return temp;
+
     }
 
     private double[] lineToEquation(String line) {
@@ -85,7 +107,7 @@ public class LinearSystems {
 
 
 
-    public  int findPivot(int column,int startRow){
+    public  int findRowPivot(int column,int startRow){
         int row = startRow;
        while(row < numberEquation){
            if (getCoeff(row,column) != 0){
@@ -100,24 +122,42 @@ public class LinearSystems {
 
     public void solve(){
             int col=0;
+
             for(int row  = 0 ; row < numberEquation;row++){
-                int rowPivot=findPivot(col,row);
+                int rowPivot=findRowPivot(col,row);
                 if(rowPivot == -1){
-                    col++;
-                    continue;
+                   int colPivot =findColPivot(col,row);
+                   if (colPivot != -1){
+                       swapCol(colPivot,col);
+                       System.out.printf("col %d <-> %d\n",col,colPivot);
+                   }
+                   else{
+                       Position position = findPivotBottom(row,col);
+
+                       if (position.isEmpty()){
+                           break;
+                       }
+                       else {
+                           swapCol(col , position.getCol());
+                           swapLine(row, position.getRow());
+                           System.out.printf("row %d <-> %d\n  | col %d <-> %d ",row,position.getCol(),col,position.getCol());
+
+                       }
+                   }
+
                 }
-                if (row != rowPivot){
+                else if (row != rowPivot){
                     swapLine(row,rowPivot);
 
-                   System.out.printf("%d <-> %d\n",row,rowPivot);
+                   System.out.printf("row %d <-> %d\n",row,rowPivot);
 
                 }
 
                 double coeff=getCoeff(row,col);
                 for(int i = row+1;i <numberEquation; i++ ) {
-
-                    equations[i] = Row.reduceLine(equations[i], equations[row], -getCoeff(i, col) / coeff);
-                    System.out.printf("%d <- %d + %d * %f\n",i,i,row, - getCoeff(i,col)/ coeff);
+                    double m = - getCoeff(i, col) / coeff;
+                    equations[i] = Row.reduceLine(equations[i], equations[row], m);
+                    System.out.printf("%d <- %d + %d * %f\n",i,i,row, m);
 
                 }
 
@@ -125,15 +165,120 @@ public class LinearSystems {
             }
     }
 
-    public double[]    getResult(){
+    private Position findPivotBottom(int row, int col) {
+        for(int i = row+1;i < numberEquation;i++){
+            for(int j =col+1;j<numberCol;j++){
+                if (getCoeff(i,j) != 0){
+                    return Position.of(i,j);
+                }
+            }
+        }
+        return Position.empty();
+    }
 
-         double[] result = new double[numberEquation];
-         for(int i=numberEquation-1 ; i >=0; i--){
+    private void swapCol(int colPivot, int col) {
+        for(int row=0; row < numberEquation;row++){
+            double t = getCoeff(row,col);
+            setCol(row,col, getCoeff(row,colPivot));
+            setCol(row,colPivot,t);
+        }
+        int i =  cols[col];
+        cols[col]=cols[colPivot];
+        cols[colPivot]=i;
+
+    }
+
+    private void setCol(int row, int col , double t) {
+        equations[row][col] = t;
+    }
+
+    private int findColPivot(int col, int row) {
+        for(int i=col+1;i< numberCol;i++){
+            if (getCoeff(row,col) != 0 ){
+                return col;
+            }
+        }
+        return -1;
+    }
+
+    public void save(File file){
+        int row = findNonZeroRow();
+
+        if (nonExistSolution(row)){
+            saveString("No solutions",file);
+        }
+        else if (row < numberCol -1){
+            saveString("Infinitely many solutions",file);
+        }
+        else {
+
+           saveResult(file,row);
+        }
+    }
+
+    private void saveString(String message, File file) {
+        try(PrintWriter writer = new PrintWriter((file))){
+            writer.println(message);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private boolean nonExistSolution(int row) {
+
+        if (isZero(equations[row],numberCol) && getCoeff(row,numberCol) != 0){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    private int findNonZeroRow() {
+        int row = numberEquation-1;
+        while( row >= 0){
+            if (!isZero(equations[row])){
+                return row;
+            }
+            row--;
+        }
+        return -1;
+    }
+
+    private boolean isZero(double[] equation) {
+       int i = 0;
+
+       while(i <numberCol+1){
+           if (equation[i] != 0){
+               return false;
+           }
+           i++;
+       }
+       return true;
+    }
+
+    private boolean isZero(double[] equation,int last) {
+        int i = 0;
+        while(i <last){
+            if (equation[i] != 0){
+                return false;
+            }
+            i++;
+        }
+        return true;
+    }
+
+    public double[]    getResult(int lastRow){
+
+
+         double[] result = new double[numberCol];
+         for(int i=lastRow ; i >=0; i--){
              double value = 0;
-             for (int col=i+1 ; col < numberEquation ; col++){
+             for (int col=i; col < numberCol ; col++){
                 value += getCoeff(i,col) * result[col];
              }
-             result[i] = (getCoeff(i,numberEquation ) - value)/ getCoeff(i,i);
+             result[i] = (getCoeff(i,numberCol ) - value)/ getCoeff(i,i);
 
 
          }

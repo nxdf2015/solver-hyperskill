@@ -19,10 +19,12 @@ public class Main {
              Parser parser = new Parser(args);
              String in = parser.get("in");
              String out = parser.get("out");
-             LinearSystems linearSystems = new LinearSystems(new File(  in));
+             LinearSystems linearSystems = new LinearSystems(new File(     in));
+        System.out.println(linearSystems);
             linearSystems.solve();
-            linearSystems.getResult();
-            linearSystems.saveResult(new File(  out));
+           // System.out.println(linearSystems);
+            linearSystems.save(new File(     out));
+
 
     }
 }
