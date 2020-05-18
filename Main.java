@@ -1,15 +1,7 @@
 package solver;
 
-import org.w3c.dom.ls.LSOutput;
 
 import java.io.File;
-import java.sql.SQLOutput;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 public class Main {
 
@@ -23,10 +15,10 @@ public class Main {
              String in = parser.get("in");
              String out = parser.get("out");
              LinearSystemsComplex  linearSystems = new LinearSystemsComplex(new File(            in));
-        System.out.println(linearSystems);
+             System.out.println(linearSystems);
             linearSystems.solve();
-           System.out.println(linearSystems);
-           linearSystems.save(new File(        out));
+            System.out.println(linearSystems);
+            linearSystems.save(new File(        out));
 
 
    }
