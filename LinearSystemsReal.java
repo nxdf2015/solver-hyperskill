@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class LinearSystems {
+public class LinearSystemsReal {
 
     private   File file;
     private double[][] equations;
@@ -18,13 +18,13 @@ public class LinearSystems {
     private int numberCol;
     private int[] cols;
 
-    public LinearSystems(File file) {
+    public LinearSystemsReal(File file) {
         this.file=file;
         readFile();
     }
 
 
-    public LinearSystems(String str){
+    public LinearSystemsReal(String str){
         String[] lines = str.split("\n");
 
          equations = new double[lines.length][];
@@ -92,7 +92,7 @@ public class LinearSystems {
 
     }
 
-    private double[] lineToEquation(String line) {
+    public double[] lineToEquation(String line) {
         String[] ls = line.split(" ");
         double[] coeff = new double[ls.length];
         for (int i = 0; i < ls.length; i++) {
